@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orçamentos de Madeiras</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#000000" />
+</head>
+<body>
+  <header>
+    <h1>Orçamentos de Madeiras</h1>
+  </header>
+
+  <main>
+    <section id="product-list">
+      <h2>Produtos</h2>
+      <div id="products"></div>
+    </section>
+
+    <section id="calculo">
+      <h2>Cálculo de Orçamento</h2>
+      <div id="selected-product"></div>
+      <p><strong>Insira as dimensões das tábuas (em metros):</strong></p>
+
+      <label for="comprimento">Comprimento (m):</label>
+      <input type="number" id="comprimento" step="0.01" value="1" min="0.01"><br><br>
+      
+      <label for="largura">Largura (m):</label>
+      <input type="number" id="largura" step="0.01" value="1" min="0.01"><br><br>
+      
+      <label for="espessura">Espessura (m):</label>
+      <input type="number" id="espessura" step="0.01" value="1" min="0.01"><br><br>
+
+      <label for="quantity">Quantidade:</label>
+      <input type="number" id="quantity" min="1" value="1"/><br><br>
+
+      <p>Total: R$ <span id="totalPrice">0.00</span></p>
+      <button id="printBtn">Imprimir/Salvar Orçamento</button>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado com sucesso!'))
+        .catch(err => console.log('Erro ao registrar Service Worker:', err));
+    }
+  </script>
+</body>
+</html>
