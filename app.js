@@ -1,58 +1,80 @@
-let selectedProduct = null;
 let products = [];
+let itensOrcamento = []; // array de objetos { produto, comprimento, largura, espessura, quantidade, volume, precoTotal }
 
 document.addEventListener('DOMContentLoaded', () => {
   fetch('products.json')
     .then(response => response.json())
     .then(data => {
       products = data;
-      renderProducts(products);
+      populateProductSelect(products);
     });
 
-  const inputs = [document.getElementById('comprimento'),
-                  document.getElementById('largura'),
-                  document.getElementById('espessura'),
-                  document.getElementById('quantity')];
-
-  inputs.forEach(input => input.addEventListener('input', updateTotal));
-
+  document.getElementById('addItemBtn').addEventListener('click', addItemAoOrcamento);
+  document.getElementById('descontoValor').addEventListener('input', recalcularTotais);
   document.getElementById('printBtn').addEventListener('click', () => window.print());
 });
 
-function renderProducts(products) {
-  const container = document.getElementById('products');
-  container.innerHTML = '';
-
-  products.forEach(product => {
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <strong>${product.nome}</strong><br>
-      Preço por m³: R$ ${product.preco_m3.toFixed(2)}<br>
-      <button onclick="selectProduct(${product.id})">Selecionar</button>
-    `;
-    container.appendChild(div);
+function populateProductSelect(products) {
+  const select = document.getElementById('produtoSelect');
+  select.innerHTML = '';
+  products.forEach(prod => {
+    const option = document.createElement('option');
+    option.value = prod.id;
+    option.textContent = `${prod.nome} - R$ ${prod.preco_m3.toFixed(2)}/m³`;
+    select.appendChild(option);
   });
 }
 
-function selectProduct(id) {
-  selectedProduct = products.find(p => p.id === id);
-  document.getElementById('selected-product').textContent = 
-    `Produto Selecionado: ${selectedProduct.nome} (R$ ${selectedProduct.preco_m3.toFixed(2)}/m³)`;
-  updateTotal();
+function addItemAoOrcamento() {
+  const produtoId = parseInt(document.getElementById('produtoSelect').value);
+  const produto = products.find(p => p.id === produtoId);
+
+  const comprimento = parseFloat(document.getElementById('comprimento').value) || 0;
+  const largura = parseFloat(document.getElementById('largura').value) || 0;
+  const espessura = parseFloat(document.getElementById('espessura').value) || 0;
+  const quantidade = parseFloat(document.getElementById('quantity').value) || 0;
+
+  const volume = comprimento * largura * espessura * quantidade;
+  const precoTotal = produto.preco_m3 * volume;
+
+  const item = {
+    produto: produto,
+    comprimento,
+    largura,
+    espessura,
+    quantidade,
+    volume,
+    precoTotal
+  };
+
+  itensOrcamento.push(item);
+  renderItens();
+  recalcularTotais();
 }
 
-function updateTotal() {
-  const totalPriceEl = document.getElementById('totalPrice');
-  if (selectedProduct) {
-    const comprimento = parseFloat(document.getElementById('comprimento').value) || 0;
-    const largura = parseFloat(document.getElementById('largura').value) || 0;
-    const espessura = parseFloat(document.getElementById('espessura').value) || 0;
-    const quantidade = parseFloat(document.getElementById('quantity').value) || 0;
+function renderItens() {
+  const tbody = document.getElementById('itensBody');
+  tbody.innerHTML = '';
 
-    const volume = comprimento * largura * espessura * quantidade;
-    const total = selectedProduct.preco_m3 * volume;
-    totalPriceEl.textContent = total.toFixed(2);
-  } else {
-    totalPriceEl.textContent = '0.00';
-  }
+  itensOrcamento.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.produto.nome}</td>
+      <td>${item.comprimento.toFixed(2)} x ${item.largura.toFixed(2)} x ${item.espessura.toFixed(2)}</td>
+      <td>${item.quantidade}</td>
+      <td>${item.volume.toFixed(3)}</td>
+      <td>${item.produto.preco_m3.toFixed(2)}</td>
+      <td>${item.precoTotal.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function recalcularTotais() {
+  const totalBruto = itensOrcamento.reduce((acc, item) => acc + item.precoTotal, 0);
+  const desconto = parseFloat(document.getElementById('descontoValor').value) || 0;
+  const totalComDesconto = Math.max(totalBruto - desconto, 0);
+
+  document.getElementById('totalBruto').textContent = totalBruto.toFixed(2);
+  document.getElementById('totalComDesconto').textContent = totalComDesconto.toFixed(2);
 }
